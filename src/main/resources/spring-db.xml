@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+		xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<!--1、配置数据库相关参数-->
+	<context:property-placeholder location="classpath:spring.properties" ignore-unresolvable="true"/>
+
+
+	<bean id="statFilter" class="com.alibaba.druid.filter.stat.StatFilter" lazy-init="true">
+		<property name="logSlowSql" value="true"/>
+		<property name="mergeSql" value="true"/>
+	</bean>
+
+	<!-- 数据库连接  读 -->
+	<bean id="readDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		  destroy-method="close" init-method="init" lazy-init="true">
+		<property name="driverClassName" value="${jdbc.driver}"/>
+		<property name="url" value="${jdbc.url2}"/>
+		<property name="username" value="${jdbc.username}"/>
+		<property name="password" value="${jdbc.password}"/>
+		<!-- 初始化连接大小 -->
+		<property name="initialSize" value="${initialSize}"/>
+		<!-- 连接池最大数量 -->
+		<property name="maxActive" value="${maxActive}"/>
+		<!-- 连接池最小空闲 -->
+		<property name="minIdle" value="${minIdle}"/>
+		<!-- 获取连接最大等待时间 -->
+		<property name="maxWait" value="${maxWait}"/>
+		<!-- -->
+		<property name="defaultReadOnly" value="true"/>
+		<property name="proxyFilters">
+			<list>
+				<ref bean="statFilter"/>
+			</list>
+		</property>
+		<property name="filters" value="${druid.filters}"/>
+		<property name="connectionProperties" value="password=${jdbc.password}"/>
+		<property name="testWhileIdle" value="true"/>
+		<property name="testOnBorrow" value="false"/>
+		<property name="testOnReturn" value="false"/>
+		<property name="validationQuery" value="SELECT 'x'"/>
+		<property name="timeBetweenLogStatsMillis" value="60000"/>
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}"/>
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}"/>
+	</bean>
+
+	<!-- 写-->
+	<bean id="writeDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		  destroy-method="close" init-method="init" lazy-init="true">
+		<property name="driverClassName" value="${jdbc.driver}"/>
+		<property name="url" value="${jdbc.url1}"/>
+		<property name="username" value="${jdbc.username}"/>
+		<property name="password" value="${jdbc.password}"/>
+		<property name="initialSize" value="${initialSize}"/>
+		<property name="maxActive" value="${maxActive}"/>
+		<property name="minIdle" value="${minIdle}"/>
+		<property name="maxWait" value="${maxWait}"/>
+		<property name="proxyFilters">
+			<list>
+				<ref bean="statFilter"/>
+			</list>
+		</property>
+		<property name="filters" value="${druid.filters}"/>
+		<property name="connectionProperties" value="password=${jdbc.password}"/>
+		<property name="testWhileIdle" value="true"/>
+		<property name="testOnBorrow" value="false"/>
+		<property name="testOnReturn" value="false"/>
+		<property name="validationQuery" value="SELECT 'x'"/>
+		<property name="timeBetweenLogStatsMillis" value="60000"/>
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}"/>
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}"/>
+	</bean>
+
+	<!-- 配置动态分配的读写 数据源 -->
+	<bean id="dataSource" class="com.khh.web.aspect.ChooseDataSource" lazy-init="true">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String" value-type="javax.sql.DataSource">
+				<!-- write -->
+				<entry key="write" value-ref="writeDataSource"/>
+				<!-- read -->
+				<entry key="read" value-ref="readDataSource"/>
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="writeDataSource"/>
+		<property name="methodType">
+			<map key-type="java.lang.String">
+				<!-- read -->
+				<entry key="read" value=",get,select,count,list,query"/>
+				<!-- write -->
+				<entry key="write" value=",add,create,update,delete,remove,"/>
+			</map>
+		</property>
+	</bean>
+
+
+
+
+</beans>
