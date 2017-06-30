@@ -24,7 +24,7 @@ public class UserController {
     @Resource
     private RedisClusterCache redisClusterCache;
 
-    //http://localhost:8080/user/select.do
+
     @ResponseBody
     @RequestMapping(value = "/select.action", method = RequestMethod.GET)
     public String select(int id) {
@@ -38,7 +38,6 @@ public class UserController {
         return user.toString();
     }
 
-    //http://localhost:8080/user/add.do
     @ResponseBody
     @RequestMapping(value = "/add.action", method = RequestMethod.GET)
     public String add() {
